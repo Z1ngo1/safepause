@@ -1,0 +1,30 @@
+{
+  "w_xgb": 0.8,
+  "rule_boost": 0.05,
+  "t_pause": 0.4101203441619873,
+  "t_review": 0.1003783799277153,
+  "features": [
+    "log_amount",
+    "refund",
+    "amount_ratio",
+    "amount_z",
+    "spend_24h_ratio",
+    "new_merchant",
+    "new_mcc",
+    "new_city",
+    "online",
+    "has_error",
+    "hour",
+    "night",
+    "tx_1h",
+    "tx_24h",
+    "log_secs_since_prev",
+    "log_user_history",
+    "mcc_code",
+    "foreign",
+    "new_state",
+    "new_merch_24h",
+    "new_frac_recent"
+  ],
+  "seq_len": 7
+}
