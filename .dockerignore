@@ -1,0 +1,6 @@
+artifacts
+notebooks
+docs
+.git
+.env
+**/__pycache__

@@ -1,0 +1,21 @@
+services:
+  safepause:
+    build: .
+    image: safepause:1.0
+    container_name: safepause
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./artifacts:/app/artifacts
+    environment:
+      - SAFEPAUSE_API_KEY=${SAFEPAUSE_API_KEY:-}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_APP_PASSWORD=${SMTP_APP_PASSWORD:-}
+      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO:-}
+      - DASHBOARD_URL=${DASHBOARD_URL:-}
+    security_opt:
+      - seccomp=unconfined
+    mem_limit: 5g
+    restart: unless-stopped
