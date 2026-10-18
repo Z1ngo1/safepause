@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SafePause</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0b1020;--panel:#121a2f;--line:#22304f;--text:#e6ebf5;--mute:#8b98b3;--blue:#4589ff;
+--red:#fa4d56;--amber:#f1c21b;--green:#42be65;--violet:#a56eff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:14px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--line)}
+h1{font-size:20px;margin:0;font-weight:600}h1 span{color:var(--mute);font-weight:400;font-size:14px;margin-left:8px}
+.badges{display:flex;gap:8px;flex-wrap:wrap}.badge{font:500 12px "IBM Plex Mono",monospace;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--mute)}
+.badge.on{color:var(--green);border-color:#2a5a3a}.badge.off{color:var(--amber);border-color:#5a4a1a}
+main{padding:20px 24px;display:grid;gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.kpi .l{color:var(--mute);font-size:12px}.kpi .v{font:500 26px "IBM Plex Mono",monospace;margin-top:6px}
+.kpi .s{color:var(--mute);font-size:12px;margin-top:2px}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.grid3{display:grid;grid-template-columns:1.2fr 1fr .9fr;gap:16px}
+@media (max-width:1100px){.grid2,.grid3{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.panel h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 10px;font-weight:500}
+table{width:100%;border-collapse:collapse;font-size:13px}th{color:var(--mute);font-weight:500;text-align:left;padding:6px;border-bottom:1px solid var(--line)}
+td{padding:6px;border-bottom:1px solid #1a2440;font-family:"IBM Plex Mono",monospace;white-space:nowrap}
+.dec{font-weight:600;font-size:11px;padding:2px 8px;border-radius:4px}.pause{background:#4a1520;color:var(--red)}.review{background:#4a3d10;color:var(--amber)}.allow{background:#123020;color:var(--green)}
+.bar{height:6px;background:#1a2440;border-radius:3px;width:80px;display:inline-block;vertical-align:middle;margin-right:6px}.bar i{display:block;height:100%;border-radius:3px}
+.fraud{color:var(--red)}
+.cases{display:flex;flex-direction:column;gap:8px;max-height:430px;overflow:auto}
+.case{border:1px solid var(--line);border-radius:8px;padding:10px;cursor:pointer}.case:hover,.case.sel{border-color:var(--blue)}
+.case .top{display:flex;justify-content:space-between;font-family:"IBM Plex Mono",monospace}.case ul{margin:6px 0 0;padding-left:18px;color:var(--mute);font-size:12px}
+.phone{width:100%;max-width:300px;margin:0 auto;border:8px solid #1f2a44;border-radius:28px;background:#f4f6fb;color:#111;padding:18px 14px;min-height:430px}
+.phone .bank{font-weight:600;color:#0f62fe;font-size:13px}.phone .alert{margin-top:14px;background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.phone .alert b{color:#da1e28;display:block;margin-bottom:6px}.phone .amt{font:600 22px "IBM Plex Mono",monospace;margin:8px 0}
+.phone p{font-size:13px;line-height:1.45;margin:8px 0}.phone .btns{display:grid;gap:8px;margin-top:12px}
+.phone button{border:0;border-radius:10px;padding:10px;font:600 13px "IBM Plex Sans";cursor:pointer}.b1{background:#da1e28;color:#fff}.b2{background:#e0e6f1;color:#111}
+.analyst{font-size:13px;line-height:1.5;color:var(--text)}.meta{color:var(--mute);font-size:12px;margin-top:8px;font-family:"IBM Plex Mono",monospace}
+.src{font-size:11px;padding:1px 6px;border-radius:4px;background:#2a1f4a;color:var(--violet)}
+canvas{max-height:220px}.empty{color:var(--mute);padding:20px 0;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>SafePause <span>live monitor, IBM LinuxONE</span></h1>
+  <div class="badges" id="badges"></div>
+</header>
+<main>
+  <section class="kpis" id="kpis"></section>
+  <section class="grid2">
+    <div class="panel"><h2>Throughput &amp; paused payments (last 2 min)</h2><canvas id="tps"></canvas></div>
+    <div class="panel"><h2>Decision latency per payment (ms)</h2><canvas id="lat"></canvas></div>
+  </section>
+  <section class="grid3">
+    <div class="panel"><h2>Live payment feed</h2>
+      <table><thead><tr><th>Time</th><th>Customer</th><th>Amount</th><th>Risk</th><th>Decision</th><th>ms</th></tr></thead><tbody id="feed"></tbody></table>
+    </div>
+    <div class="panel"><h2>Cases for analysts</h2><div class="cases" id="cases"><div class="empty">No paused payments yet</div></div></div>
+    <div class="panel"><h2>What the customer sees</h2><div id="phone"></div>
+      <h2 style="margin-top:16px">Analyst summary <span class="src">IBM Granite</span></h2><div class="analyst" id="analyst">-</div><div class="meta" id="meta"></div>
+    </div>
+  </section>
+</main>
+<script>
+const $=id=>document.getElementById(id);let selected=null,lastCases=[];
+const fmt=n=>Number(n).toLocaleString('en-US');const money=n=>'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const chartOpts={animation:false,responsive:true,plugins:{legend:{labels:{color:'#8b98b3'}}},scales:{x:{ticks:{color:'#8b98b3',maxTicksLimit:8},grid:{color:'#1a2440'}},y:{ticks:{color:'#8b98b3'},grid:{color:'#1a2440'},beginAtZero:true}}};
+const tps=new Chart($('tps'),{type:'line',data:{labels:[],datasets:[{label:'payments / s',data:[],borderColor:'#4589ff',pointRadius:0,tension:.3},{label:'paused / s',data:[],borderColor:'#fa4d56',pointRadius:0,tension:.3}]},options:chartOpts});
+const lat=new Chart($('lat'),{type:'bar',data:{labels:[],datasets:[{label:'payments',data:[],backgroundColor:'#a56eff'}]},options:chartOpts});
+function kpi(l,v,s=''){return `<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`}
+async function j(u){const r=await fetch(u,{cache:'no-store'});return r.json()}
+async function health(){try{const h=await j('/api/health');const b=(t,on)=>`<span class="badge ${on?'on':'off'}">${t}</span>`;
+$('badges').innerHTML=b('arch: '+h.arch,h.arch==='s390x')+b('Telum NNPA: '+(h.nnpa?'on':'off'),h.nnpa)+b('LSTM model: '+(h.seq_model?'on':'off'),h.seq_model)+b('Granite: '+(h.llm?'loaded':'template'),!!h.llm)+b('email: '+(h.email_live?'live':'dry-run'),h.email_live)}catch(e){}}
+async function stats(){const s=await j('/api/stats');const recall=s.fraud_seen?Math.round(100*s.fraud_caught/s.fraud_seen)+'%':'-';
+$('kpis').innerHTML=kpi('Payments scored',fmt(s.processed))+kpi('Paused',fmt(s.paused),'held before money left')+kpi('Needs review',fmt(s.review),'customer asked to confirm')+
+kpi('Median latency',s.p50_ms+' ms','P99 '+s.p99_ms+' ms')+kpi('Throughput',s.tps_10s+'/s','last 10 s')+kpi('Fraud caught',recall,`${s.fraud_caught} of ${s.fraud_seen} labelled`)+kpi('False alarms',fmt(s.false_alarms))+kpi('Money protected',money(s.money_protected));
+tps.data.labels=s.series.map(p=>new Date(p.t*1000).toLocaleTimeString());tps.data.datasets[0].data=s.series.map(p=>p.tps);tps.data.datasets[1].data=s.series.map(p=>p.paused);tps.update();
+const h=s.latency_hist;if(h.length){const max=h[Math.floor(h.length*.99)]||h[h.length-1];const bins=20,w=Math.max(max/bins,0.001),c=new Array(bins).fill(0);
+h.forEach(x=>{c[Math.min(bins-1,Math.floor(x/w))]++});lat.data.labels=c.map((_,i)=>(i*w).toFixed(2));lat.data.datasets[0].data=c;lat.update()}}
+async function feed(){const f=await j('/api/feed?limit=14');$('feed').innerHTML=f.map(e=>{const col=e.risk>=.5?'#fa4d56':e.risk>=.2?'#f1c21b':'#42be65';
+return `<tr><td>${esc(String(e.ts).slice(5,16))}</td><td>${esc(e.customer)}</td><td class="${e.label==1?'fraud':''}">${money(e.amount)}</td><td><span class="bar"><i style="width:${Math.round(e.risk*100)}%;background:${col}"></i></span>${e.risk.toFixed(2)}</td><td><span class="dec ${e.decision}">${e.decision.toUpperCase()}</span></td><td>${e.latency_ms.toFixed(2)}</td></tr>`}).join('')}
+async function cases(){const c=await j('/api/cases?limit=12');lastCases=c;if(!c.length)return;if(!selected||!c.find(x=>x.tx_id===selected))selected=(c.find(x=>x.decision==='pause')||c[0]).tx_id;
+$('cases').innerHTML=c.map(e=>`<div class="case ${e.tx_id===selected?'sel':''}" onclick="pick('${esc(e.tx_id)}')"><div class="top"><span><span class="dec ${e.decision}">${e.decision.toUpperCase()}</span> ${money(e.amount)}</span><span>risk ${e.risk.toFixed(2)}</span></div><ul>${(e.reasons||[]).map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>`).join('');show()}
+function pick(id){selected=id;cases()}
+function show(){const e=lastCases.find(x=>x.tx_id===selected);if(!e)return;const msg=e.customer_msg||'Waiting for Granite...';
+$('phone').innerHTML=`<div class="phone"><div class="bank">Your Bank</div><div class="alert"><b>${e.decision==='pause'?'Payment paused for your safety':'Please confirm this payment'}</b><div class="amt">${money(e.amount)}</div><p>${esc(msg)}</p><div class="btns"><button class="b1">Cancel payment</button><button class="b2">It was me, continue</button></div></div><p style="font-size:11px;color:#555;margin-top:12px">Your trusted contact has been notified.</p></div>`;
+$('analyst').textContent=e.analyst_msg||(e.decision==='pause'?'...':'Review case: customer is asked to confirm.');
+$('meta').innerHTML=`case ${esc(e.tx_id)}, customer ${esc(e.customer)}, scoring ${e.latency_ms.toFixed(2)} ms`+(e.genai_ms?`, GenAI ${(e.genai_ms/1000).toFixed(1)} s (${esc(e.genai_src)})`:'')+(e.alert?`, email: ${esc(e.alert)}`:'')}
+async function tick(){try{await Promise.all([stats(),feed(),cases()])}catch(e){console.error(e)}}
+health();setInterval(health,10000);tick();setInterval(tick,1000);
+</script>
+</body>
+</html>
