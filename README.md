@@ -39,6 +39,16 @@ The data is small (19 customers, 189 fraud cases for training) so the numbers ar
 ![results](artifacts/figures/02_results.png)
 ![latency](artifacts/figures/04_latency.png)
 
+## Screenshots (taken on our LinuxONE Community Cloud instance)
+
+| | |
+|---|---|
+| Live dashboard | ![](docs/screenshots/01_live_dashboard.png) |
+| Customer warning written by Granite | ![](docs/screenshots/02_customer_warning_granite.png) |
+| Emails to the trusted contact | ![](docs/screenshots/03_trusted_contact_emails.png) |
+| z17 (machine 9175) with NNPA | ![](docs/screenshots/04_linuxone_z17_nnpa.png) |
+| zDNN plugin used by TensorFlow | ![](docs/screenshots/05_zdnn_plugin.png) |
+
 ## Architecture
 
 ```mermaid
